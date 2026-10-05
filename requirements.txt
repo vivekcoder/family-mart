@@ -1,0 +1,2528 @@
+# Mobile Mini-Mart / Farm Management Game
+
+## Complete Development Specification
+
+Build an **Android-first, offline, single-player 3D mobile management game** inspired by the gameplay loop and visual philosophy of **My Mini Mart**.
+
+The game should NOT copy proprietary assets, characters, models, textures, animations, UI, branding, or code from the original game. Use it only as inspiration for the **casual 3D management-game experience, camera style, progression, readability, and gameplay feel**.
+
+The final result should be a polished, original casual mobile game.
+
+---
+
+# 1. Platform
+
+Target platform:
+
+**Android**
+
+Initial version:
+
+* Offline
+* Single player
+* Local save storage
+* No online multiplayer
+* No backend required
+* No missions/quests
+* No mandatory internet connection
+
+The architecture should nevertheless be modular enough that online features could be added in a future version.
+
+---
+
+# 2. Core Gameplay Loop
+
+The fundamental gameplay loop is:
+
+```text
+Farm / Produce Resources
+        ↓
+Process Resources
+        ↓
+Stock Mart Shelves
+        ↓
+Customers Enter
+        ↓
+Customers Select Products
+        ↓
+Customers Go To Checkout
+        ↓
+Player Packs / Processes Checkout
+        ↓
+Player Earns Money
+        ↓
+Player Buys Upgrades
+        ↓
+Farm + Production + Mart Expand
+        ↓
+More Products
+        ↓
+More Customers
+        ↓
+Repeat
+```
+
+The game should be easy to understand without extensive tutorials.
+
+The physical environment itself should communicate how the production system works.
+
+---
+
+# 3. Starting State
+
+The player starts with approximately:
+
+**$10**
+
+The exact starting amount should be configurable.
+
+The player starts with a very small mart/farm.
+
+Initial setup:
+
+* One tomato shelf
+* One tomato plant
+* One cashier counter
+* Minimal farm area
+* Small mart
+* Basic player character
+* No advanced production machines
+* No chickens
+* No cows
+* No wheat plots initially purchased
+
+The starting environment should intentionally look small and underdeveloped.
+
+The player should immediately understand:
+
+> "I have a tiny shop that I can grow."
+
+---
+
+# 4. Money
+
+Use **dollars ($)** as the game's currency.
+
+Do not use coins.
+
+Money is earned primarily by completing customer purchases.
+
+Money is spent on:
+
+* shelves
+* plants
+* animals
+* machines
+* farm plots
+* fridges
+* mart expansion
+* farm expansion
+* carrying-capacity upgrades
+* other future upgrades
+
+The money balance must persist between sessions.
+
+---
+
+# 5. Tomato Production
+
+The starting production chain is tomatoes.
+
+The player owns a tomato plant.
+
+Each tomato plant:
+
+* produces 1 tomato every second
+* has a maximum storage of 3 tomatoes
+* stops producing when it reaches 3
+* resumes producing when tomatoes are harvested
+
+Example:
+
+```text
+Tomato Plant
+    ↓
+1 tomato / second
+    ↓
+Maximum = 3
+    ↓
+Player harvests
+    ↓
+Plant continues producing
+```
+
+Tomatoes should be visibly present on the plant.
+
+When harvested:
+
+* tomato disappears from plant
+* tomato is added to player's carried inventory
+* small pickup animation plays
+
+---
+
+# 6. Tomato Shelf
+
+The player can place tomatoes into the tomato shelf.
+
+The shelf should visually contain actual tomatoes.
+
+The shelf has a configurable maximum capacity.
+
+The shelf should have visual states:
+
+```text
+Empty
+Partially stocked
+Full
+```
+
+If the shelf needs restocking, display a floating **!** attention indicator.
+
+---
+
+# 7. Player Carrying Capacity
+
+The player has a limited carrying capacity.
+
+Example:
+
+```text
+Starting capacity = configurable
+```
+
+The player can carry products harvested from farms or collected from production buildings.
+
+Carrying capacity can be upgraded using money.
+
+Each upgrade should:
+
+* have a cost
+* increase carrying capacity
+* be represented by an upgrade pad
+* visibly communicate progression
+
+Example:
+
+```text
+Capacity Level 0 → 3 items
+Capacity Level 1 → 5 items
+Capacity Level 2 → 8 items
+Capacity Level 3 → 12 items
+...
+```
+
+The exact values must be data-driven.
+
+---
+
+# 8. Customer System
+
+Customers periodically enter the mart.
+
+Customers should have a shopping list generated dynamically.
+
+### Important rule:
+
+A customer's shopping list may contain **only products that are currently available in the mart**.
+
+Do NOT generate a customer request for:
+
+* an unavailable product
+* a product whose shelf has not been purchased
+* a product that cannot currently be sold
+
+For example:
+
+If only the Tomato Shelf exists:
+
+```text
+Customer:
+✓ Tomato
+✗ Egg
+✗ Milk
+✗ Bread
+✗ Pizza
+```
+
+Once Egg Shelf is unlocked:
+
+```text
+Customer:
+✓ Tomato
+✓ Egg
+```
+
+The customer system should dynamically expand its possible shopping list as the mart expands.
+
+---
+
+# 9. Customer Shopping
+
+Customer flow:
+
+```text
+Enter mart
+    ↓
+Generate shopping list
+    ↓
+Walk to required shelf
+    ↓
+Take required quantity
+    ↓
+Put products into cart
+    ↓
+Move to next required shelf
+    ↓
+After shopping → checkout
+```
+
+Customers should physically interact with shelves.
+
+When taking an item:
+
+```text
+Shelf product
+    ↓
+Pickup animation
+    ↓
+Product appears in cart
+```
+
+Customer carts should visibly contain the products being purchased.
+
+---
+
+# 10. Customer Patience
+
+Customers should have a finite waiting time at each shelf.
+
+If a customer cannot obtain all required items within the allowed time:
+
+```text
+Customer becomes impatient
+    ↓
+Stops waiting at that shelf
+    ↓
+Moves to checkout
+    ↓
+Purchases whatever they have collected so far
+```
+
+The customer should NOT remain stuck indefinitely.
+
+---
+
+# 11. Customer Patience Indicator
+
+Do NOT turn the entire customer red when they become impatient.
+
+Instead, use a **floating world-space indicator above the customer**.
+
+The indicator should communicate patience/anger progression.
+
+Example:
+
+```text
+High patience
+
+    😊
+    ██████████
+       👤
+```
+
+```text
+Medium patience
+
+    😐
+    ██████░░░░
+       👤
+```
+
+```text
+Low patience
+
+    😠
+    ██░░░░░░░░
+       👤
+```
+
+```text
+Very low patience
+
+    😡
+    ░░░░░░░░░░
+       👤
+```
+
+The indicator should transition smoothly.
+
+The customer itself should remain visually normal.
+
+Use subtle:
+
+* pulse
+* bob
+* shake
+
+as patience decreases.
+
+Do not make the screen visually dominated by red warning states.
+
+---
+
+# 12. Customer Characters
+
+Customers should use stylized 3D characters.
+
+Characteristics:
+
+* oversized heads
+* simple facial features
+* rounded bodies
+* colorful clothing
+* varied hairstyles
+* varied skin tones
+* varied body shapes
+
+Create several character variants.
+
+Avoid spawning identical customers repeatedly.
+
+---
+
+# 13. Customer Carts
+
+Customers should use visible carts or shopping baskets.
+
+Products should visibly appear inside them.
+
+Example:
+
+```text
+Empty cart
+    ↓
+🍅
+    ↓
+🍅 🥚
+    ↓
+🍅 🥚 🍞
+```
+
+This provides immediate visual feedback.
+
+---
+
+# 14. Checkout
+
+The mart starts with one cashier counter.
+
+Checkout should have:
+
+* counter
+* POS/register
+* scanner
+* bagging area
+* customer queue position
+
+Customer checkout:
+
+```text
+Customer arrives
+    ↓
+Places products
+    ↓
+Player interacts
+    ↓
+Products are packed/scanned
+    ↓
+Payment completed
+    ↓
+Money earned
+    ↓
+Customer leaves
+```
+
+The interaction should be fast and satisfying.
+
+Avoid requiring the player to perform many repetitive taps.
+
+---
+
+# 15. Checkout Visual Feedback
+
+When checkout completes:
+
+* short scanner/checkout animation
+* customer payment animation
+* floating `$` reward
+* money counter increases
+* customer leaves happily
+
+Example:
+
+```text
+Customer pays $25
+       ↓
+      +$25
+       ↑
+Money balance increases
+```
+
+---
+
+# 16. Attention Indicator System
+
+Use a unified floating world-space attention system.
+
+Important objects should display a floating **!** when they require player attention.
+
+Examples:
+
+### Empty/low-stock shelf
+
+```text
+     ❗
+      |
+  TOMATO SHELF
+```
+
+### Ready tomato plant
+
+```text
+     ❗
+      |
+    🍅🌱
+```
+
+### Chicken with egg ready
+
+```text
+     ❗
+      |
+     🥚
+     🐔
+```
+
+### Cow with milk ready
+
+```text
+     ❗
+      |
+     🥛
+     🐄
+```
+
+### Finished oven
+
+```text
+     ❗
+      |
+    OVEN
+```
+
+Indicators should be:
+
+* small
+* readable
+* floating
+* animated subtly
+* always facing the camera
+
+Do not display indicators permanently if there is nothing the player can do about the state.
+
+---
+
+# 17. Attention Priority
+
+Use configurable attention priorities.
+
+Example:
+
+```text
+CRITICAL
+Customer about to leave
+
+HIGH
+Customer waiting at checkout
+Product ready to collect
+
+MEDIUM
+Shelf needs restocking
+
+LOW
+Production machine waiting for input
+```
+
+Avoid overwhelming the player with dozens of large indicators.
+
+---
+
+# 18. Unlock Dependency System
+
+Use explicit dependency data.
+
+A product's production source must **not become purchasable simply because that product exists in the game's configuration**.
+
+The player must first purchase the **destination shelf/storage**.
+
+General rule:
+
+> **Purchasing the destination storage unlocks the source that produces the product.**
+
+Examples:
+
+```text
+Egg Shelf
+    ↓
+Chicken becomes purchasable
+```
+
+```text
+Milk Fridge
+    ↓
+Cow becomes purchasable
+```
+
+```text
+Water Fridge
+    ↓
+Hand Pump becomes purchasable
+```
+
+```text
+Cold Drinks Fridge
+    ↓
+Cola Machine becomes purchasable
+```
+
+```text
+Bread Shelf
+    ↓
+Bread Oven becomes purchasable
+```
+
+```text
+Pizza Shelf
+    ↓
+Pizza Oven becomes purchasable
+```
+
+This rule must be enforced by the unlock system and UI.
+
+---
+
+# 19. Unlockable Data Model
+
+Use data-driven unlockables.
+
+Conceptually:
+
+```text
+Unlockable
+{
+    id,
+    displayName,
+    purchasePrice,
+    requiredUnlocks[],
+    destinationStorage,
+    prefab,
+    position,
+    state
+}
+```
+
+For example:
+
+```text
+Chicken
+{
+    id: "chicken",
+    requiredStorage: "egg_shelf"
+}
+```
+
+The UI must not display a purchase option if the prerequisites are not met.
+
+---
+
+# 20. Chicken System
+
+The player can purchase chickens.
+
+Each chicken:
+
+* consumes 1 tomato
+* produces 1 egg
+* has maximum egg output/storage of 4
+* stops producing when output reaches maximum
+* resumes after eggs are collected
+
+Conceptually:
+
+```text
+Chicken
+    +
+1 Tomato
+    ↓
+1 Egg
+```
+
+Maximum stored eggs:
+
+**4**
+
+The chicken should visually eat/feed when consuming tomatoes.
+
+When an egg becomes available, display an attention indicator.
+
+---
+
+# 21. Egg Shelf
+
+The player can purchase an Egg Shelf.
+
+Only after purchasing the Egg Shelf should the Chicken purchase option become available.
+
+Egg Shelf should visibly display eggs.
+
+---
+
+# 22. Wheat Farm
+
+The wheat farm must be a **4 × 4 matrix**.
+
+Total plots:
+
+**16**
+
+```text
+┌────┬────┬────┬────┐
+│ 1  │ 2  │ 3  │ 4  │
+├────┼────┼────┼────┤
+│ 5  │ 6  │ 7  │ 8  │
+├────┼────┼────┼────┤
+│ 9  │10  │11  │12  │
+├────┼────┼────┼────┤
+│13  │14  │15  │16  │
+└────┴────┴────┴────┘
+```
+
+---
+
+# 23. Each Wheat Plot Is an Independent Entity
+
+Each of the 16 plots must be a **first-class unlockable entity**.
+
+IDs:
+
+```text
+wheat_1_1
+wheat_1_2
+wheat_1_3
+wheat_1_4
+
+wheat_2_1
+wheat_2_2
+wheat_2_3
+wheat_2_4
+
+wheat_3_1
+wheat_3_2
+wheat_3_3
+wheat_3_4
+
+wheat_4_1
+wheat_4_2
+wheat_4_3
+wheat_4_4
+```
+
+Each plot has its own:
+
+* ID
+* row
+* column
+* purchase price
+* unlocked state
+* crop state
+* growth timer
+* yield
+* upgrade pad
+* attention indicator
+* save/load state
+
+---
+
+# 24. Wheat Plot Purchase
+
+Each wheat plot is purchased separately.
+
+Initially:
+
+```text
+🔒 🔒 🔒 🔒
+🔒 🔒 🔒 🔒
+🔒 🔒 🔒 🔒
+🔒 🔒 🔒 🔒
+```
+
+Purchasing a plot:
+
+```text
+Upgrade Pad
+    ↓
+Player buys plot
+    ↓
+Money deducted
+    ↓
+Pad disappears
+    ↓
+Soil appears
+    ↓
+Wheat begins growing
+```
+
+The player gradually fills the 4 × 4 farm.
+
+---
+
+# 25. Wheat Plot Pricing
+
+Each plot must have an independently configurable price.
+
+Example pricing:
+
+```text
+Plot 1  → $25
+Plot 2  → $35
+Plot 3  → $50
+Plot 4  → $70
+
+Plot 5  → $90
+Plot 6  → $120
+Plot 7  → $160
+Plot 8  → $220
+
+Plot 9  → $300
+Plot 10 → $400
+Plot 11 → $550
+Plot 12 → $750
+
+Plot 13 → $1,000
+Plot 14 → $1,300
+Plot 15 → $1,700
+Plot 16 → $2,200
+```
+
+These are initial balancing examples.
+
+All prices must be configurable.
+
+---
+
+# 26. Wheat Plot Unlock Order
+
+Initially use **sequential unlocking**.
+
+Example:
+
+```text
+wheat_1_1
+    ↓
+wheat_1_2
+    ↓
+wheat_1_3
+    ↓
+wheat_1_4
+    ↓
+wheat_2_1
+    ↓
+...
+    ↓
+wheat_4_4
+```
+
+However, implement the system so the dependency rule can later be changed to:
+
+* sequential
+* adjacent
+* free choice
+* prerequisite based
+
+Do not hard-code sequential progression into the underlying system.
+
+---
+
+# 27. Independent Wheat Growth
+
+Every purchased wheat plot must have its own growth state.
+
+Example:
+
+```text
+Plot 1 → Ready
+Plot 2 → 60% grown
+Plot 3 → 20% grown
+Plot 4 → Recently harvested
+```
+
+Do not use a single timer for the entire farm.
+
+This allows crops to naturally mature at different times.
+
+---
+
+# 28. Wheat Harvesting
+
+The player can harvest each wheat plot individually.
+
+When harvested:
+
+```text
+Wheat disappears
+    ↓
+Wheat added to player inventory
+    ↓
+Plot begins next growth cycle
+```
+
+A ready plot should show a floating `!`.
+
+---
+
+# 29. Cow System
+
+The player can purchase cows.
+
+A cow:
+
+* consumes 1 wheat crop
+* produces 1 milk pack
+* maximum milk output/storage = 4
+* stops producing when full
+* resumes after milk is collected
+
+Conceptually:
+
+```text
+1 Wheat
+   +
+Cow
+   ↓
+1 Milk Pack
+```
+
+Milk should be visibly represented.
+
+---
+
+# 30. Milk Fridge
+
+The mart should contain a **permanent milk fridge** once unlocked.
+
+The fridge is a fixed mart fixture.
+
+Milk is stored there.
+
+Only after purchasing the Milk Fridge should the Cow purchase option become available.
+
+The fridge should visually contain milk packs/bottles.
+
+---
+
+# 31. Farm Expansion
+
+The player can expand the farm using money.
+
+Farm expansion should:
+
+* unlock additional physical space
+* use an upgrade pad
+* show construction/expansion animation
+* create room for crops/animals
+* visually make the farm larger
+
+Expansion should happen at predetermined locations.
+
+Do not randomly spawn new farm sections.
+
+---
+
+# 32. Water System
+
+Add a dedicated Water Fridge.
+
+Water comes from a hand pump.
+
+The hand pump:
+
+* automatically pumps one water bottle every second
+* maximum stored output = 4
+* stops when storage reaches 4
+* resumes when water is collected/consumed
+
+Visual flow:
+
+```text
+Hand Pump
+    ↓
+Water Bottle
+    ↓
+Water Fridge
+```
+
+The player should be able to see bottles accumulating.
+
+---
+
+# 33. Cold Drink System
+
+Add a dedicated Cold Drinks Fridge.
+
+Cold drinks are produced by a Cola Machine.
+
+The Cola Machine:
+
+```text
+1 Water Bottle
+      ↓
+Cola Machine
+      ↓
+1 Cold Drink
+```
+
+Each production cycle consumes one water bottle.
+
+The output goes to the Cold Drinks Fridge.
+
+Only after purchasing the Cold Drinks Fridge should the Cola Machine become available.
+
+---
+
+# 34. Bread Production
+
+Bread requires:
+
+```text
+1 Flour
++
+1 Egg
+↓
+Bread Oven
+↓
+1 Bread
+```
+
+Bread is stored in the Bread Shelf.
+
+The Bread Shelf must be purchased before the Bread Oven becomes available.
+
+---
+
+# 35. Flour Production
+
+Flour comes from wheat.
+
+The player must establish a Flour Mill.
+
+Conceptual chain:
+
+```text
+Wheat Farm
+    ↓
+Wheat
+    ↓
+Flour Mill
+    ↓
+Flour
+    ↓
+Bread Oven
+    ↓
+Bread
+    ↓
+Bread Shelf
+```
+
+The Flour Mill should be a stylized production machine.
+
+It should visibly process wheat into flour.
+
+---
+
+# 36. Ketchup Production
+
+The player can purchase a Ketchup Shelf.
+
+The Ketchup Shelf unlocks the Ketchup Machine.
+
+Ketchup production requires tomatoes.
+
+Conceptually:
+
+```text
+Tomatoes
+    ↓
+Ketchup Machine
+    ↓
+Ketchup
+    ↓
+Ketchup Shelf
+```
+
+The machine should visually process tomatoes.
+
+---
+
+# 37. Pizza Production
+
+Pizza is a later-stage product.
+
+Pizza requires:
+
+```text
+1 Flour
++
+1 Ketchup
++
+1 Egg
+↓
+Pizza Oven
+↓
+1 Pizza Slice
+```
+
+Pizza is stored in a dedicated Pizza Shelf.
+
+The Pizza Oven should only operate when a **Baker** is available.
+
+---
+
+# 38. Baker
+
+The Baker is a dedicated worker.
+
+The Baker should:
+
+* walk to the Pizza Oven
+* collect required ingredients
+* operate the oven
+* produce pizza
+* place finished pizza into the output/storage area
+
+Do not teleport the Baker.
+
+Use actual movement and work animations.
+
+The Baker should have a visually distinct appearance:
+
+* chef/baker hat
+* apron
+* friendly stylized character
+
+---
+
+# 39. Pizza Production Flow
+
+```text
+Flour
+   +
+Ketchup
+   +
+Egg
+   ↓
+Baker
+   ↓
+Pizza Oven
+   ↓
+Cooking animation
+   ↓
+Pizza Slice
+   ↓
+Pizza Shelf
+```
+
+The Pizza Oven should look more advanced than the Bread Oven.
+
+Pizza should be visibly recognizable as a finished product.
+
+---
+
+# 40. Production Dependency Graph
+
+The complete production system should conceptually look like:
+
+```text
+TOMATO
+  │
+  ├──────────────→ Tomato Shelf
+  │
+  └→ Ketchup Machine
+          │
+          └──────→ Ketchup
+                       │
+WHEAT ─→ Flour Mill ─→ Flour
+  │                    │
+  │                    ├────→ Bread Oven
+  │                    │          │
+  │                    │          └──→ Bread Shelf
+  │                    │
+  │                    └────→ Pizza Oven
+  │
+  └────→ Cow → Milk → Milk Fridge
+
+Chicken
+   ↓
+Egg
+   ├────→ Egg Shelf
+   ├────→ Bread Oven
+   └────→ Pizza Oven
+
+Water Pump
+   ↓
+Water
+   ↓
+Water Fridge
+   ↓
+Cola Machine
+   ↓
+Cold Drink
+   ↓
+Cold Drinks Fridge
+
+Pizza Oven
+   ↓
+Pizza
+   ↓
+Pizza Shelf
+```
+
+This dependency graph should be represented in data/configuration rather than hard-coded across unrelated scripts.
+
+---
+
+# 41. Physical World Layout
+
+Use a fixed, designed world layout.
+
+Do not procedurally place important buildings.
+
+The world should roughly contain:
+
+```text
+                 FARM
+ ┌───────────────────────────────────┐
+ │ Tomato Plants     Wheat 4 × 4     │
+ │                                   │
+ │ Chickens            Cows          │
+ └───────────────────────────────────┘
+
+             PRODUCTION AREA
+ ┌───────────────────────────────────┐
+ │ Flour Mill   Ketchup Machine      │
+ │ Bread Oven   Cola Machine         │
+ │ Pizza Oven                         │
+ └───────────────────────────────────┘
+
+                   MART
+ ┌───────────────────────────────────┐
+ │ Tomato Shelf   Egg Shelf          │
+ │ Bread Shelf    Ketchup Shelf      │
+ │ Pizza Shelf                       │
+ │                                   │
+ │ Milk Fridge   Water Fridge        │
+ │ Cold Drinks Fridge                │
+ │                                   │
+ │              Checkout             │
+ └────────────── ENTRANCE ────────────┘
+```
+
+Exact layout can be adjusted for gameplay.
+
+---
+
+# 42. Expansion Locations
+
+Every major expansion must have a predetermined location.
+
+Do not randomly spawn new sections.
+
+Use logical spatial progression.
+
+For example:
+
+```text
+Starting Mart
+    ↓
+Tomato Farm Expansion
+    ↓
+Chicken Area
+    ↓
+Wheat Farm
+    ↓
+Cow Area
+    ↓
+Production Area
+    ↓
+Additional Mart Space
+```
+
+New machines should appear in dedicated production areas.
+
+---
+
+# 43. Upgrade Pads
+
+All major purchases should use world-space upgrade pads.
+
+Examples:
+
+* shelf purchase
+* plant purchase
+* animal purchase
+* machine purchase
+* fridge purchase
+* farm expansion
+* mart expansion
+* carrying-capacity upgrade
+* wheat plot purchase
+
+An upgrade pad should:
+
+* sit on the ground
+* display purchase price
+* glow when affordable
+* dim when unaffordable
+* subtly float/bob
+* disappear after purchase
+
+Example:
+
+```text
+      $100
+       ↓
+   ┌─────────┐
+   │ UPGRADE │
+   └─────────┘
+      [PAD]
+```
+
+---
+
+# 44. Upgrade Pad States
+
+### Affordable
+
+* bright
+* subtle glow
+* price visible
+* gentle animation
+
+### Unaffordable
+
+* dimmed
+* price visible
+* no purchase
+
+### Purchased
+
+* pad disappears
+* construction/unlock animation plays
+* new object appears
+
+---
+
+# 45. Expansion Animation
+
+When purchasing an expansion:
+
+```text
+Player purchases
+      ↓
+Ground highlights
+      ↓
+Construction effect
+      ↓
+Floor/path/fence appears
+      ↓
+New area becomes active
+      ↓
+New upgrade pads appear
+```
+
+Keep the animation approximately 1–2 seconds.
+
+---
+
+# 46. Visual Direction
+
+The visual style should be inspired by the **casual 3D mobile aesthetic of My Mini Mart**, while remaining fully original.
+
+Target characteristics:
+
+* polished stylized 3D
+* low-poly-inspired but high quality
+* rounded geometry
+* colorful
+* cheerful
+* clean
+* toy-like
+* exaggerated proportions
+* simple readable shapes
+* satisfying animations
+* minimal clutter
+
+The final result should look like a polished commercial mobile game, not a prototype made from primitive Unity objects.
+
+---
+
+# 47. Camera
+
+Use a third-person elevated/isometric-style camera.
+
+The player should be visible from behind and slightly above.
+
+The camera must allow the player to clearly see:
+
+* player
+* customers
+* shelves
+* checkout
+* farm
+* machines
+* animals
+* upgrade pads
+
+Avoid completely top-down camera views.
+
+Avoid excessive camera movement.
+
+The camera should keep gameplay objects readable on a mobile screen.
+
+---
+
+# 48. Environment Colors
+
+Use a soft, cheerful palette.
+
+### Environment
+
+* warm green grass
+* beige/brown soil
+* warm wood
+* light stone/concrete
+* muted building colors
+
+### Product colors
+
+```text
+Tomato       → red
+Wheat        → golden yellow
+Egg          → white/cream
+Milk         → white/light blue
+Water        → blue
+Ketchup      → red
+Flour        → cream/beige
+Bread        → golden brown
+Cold Drink   → colorful
+Pizza        → red/orange/yellow
+```
+
+Do not make the entire environment highly saturated.
+
+Use stronger colors for important gameplay objects.
+
+---
+
+# 49. Mart Appearance
+
+The starting mart should be small.
+
+Initially contain:
+
+* entrance
+* tomato shelf
+* checkout
+* small empty floor area
+
+The emptiness is intentional.
+
+As the player expands:
+
+```text
+Small Shop
+    ↓
+Growing Grocery
+    ↓
+Mini Supermarket
+```
+
+The environment itself should visibly communicate progression.
+
+---
+
+# 50. Shelf Design
+
+All shelves should share a consistent design language.
+
+Use:
+
+* rounded edges
+* chunky proportions
+* stylized wood/paint
+* 2–3 visible tiers
+* clear product presentation
+
+Shelves should contain physical products.
+
+Examples:
+
+```text
+Tomato Shelf → tomatoes
+Egg Shelf → eggs
+Bread Shelf → bread
+Ketchup Shelf → ketchup
+Pizza Shelf → pizza
+```
+
+Do not represent shelves merely with text.
+
+---
+
+# 51. Fridge Design
+
+Fridges should look clearly different from normal shelves.
+
+Use rounded glass-front refrigerator designs.
+
+### Milk Fridge
+
+White/light blue.
+
+### Water Fridge
+
+Blue/white.
+
+### Cold Drinks Fridge
+
+Colorful beverage presentation.
+
+Products should be visible through the front.
+
+---
+
+# 52. Production Machine Design
+
+Machines should be stylized cartoon machinery.
+
+Each machine should have:
+
+* input area
+* processing area
+* output area
+* visible animation
+* clear visual identity
+
+Machines:
+
+* Flour Mill
+* Ketchup Machine
+* Bread Oven
+* Cola Machine
+* Pizza Oven
+* Hand Pump
+
+Avoid generic industrial assets.
+
+---
+
+# 53. Tomato Plant
+
+Tomato plant:
+
+* green leaves
+* thick stylized stem
+* clearly visible red tomatoes
+* exaggerated tomato size
+
+Plant states:
+
+```text
+Growing
+Ready
+Harvested
+```
+
+Tomatoes should visibly disappear when harvested.
+
+---
+
+# 54. Wheat
+
+Wheat should use golden stalks.
+
+It must be visually distinct from normal grass.
+
+Each plot should visually communicate:
+
+```text
+Empty/locked
+Purchased
+Growing
+Ready
+Recently harvested
+```
+
+---
+
+# 55. Chicken Design
+
+Cute stylized chicken:
+
+* rounded body
+* oversized head
+* simple beak
+* expressive eyes
+* short legs
+* small wings
+* white/cream feathers
+
+Animations:
+
+```text
+Idle
+Walk
+Eat
+Peck
+Lay Egg
+Happy
+```
+
+---
+
+# 56. Cow Design
+
+Cute stylized cow:
+
+* rounded body
+* oversized head
+* short legs
+* simple horns
+* expressive eyes
+* black/white or brown/white pattern
+
+Animations:
+
+```text
+Idle
+Walk
+Eat Wheat
+Produce Milk
+Happy
+```
+
+---
+
+# 57. Player Character
+
+The player should be a polished stylized 3D character.
+
+Animations:
+
+```text
+Idle
+Walk
+Run
+Harvest
+Pick Up
+Carry
+Stock Shelf
+Operate Checkout
+Use Machine
+Interact
+```
+
+When carrying products, the products should visibly stack on the player.
+
+---
+
+# 58. Product Models
+
+Products must be physical, recognizable objects.
+
+```text
+Tomato      → tomato
+Egg         → egg
+Milk        → milk carton/bottle
+Water       → bottle
+Ketchup     → ketchup bottle
+Flour       → flour bag
+Bread       → loaf
+Cold Drink  → bottle/can
+Pizza       → pizza slice
+```
+
+Avoid placeholder cubes or spheres in the final build.
+
+---
+
+# 59. Visual Quality
+
+Increase the visual quality of **every component**.
+
+The final game should use polished stylized 3D assets rather than basic primitives.
+
+Major assets requiring individual visual treatment:
+
+```text
+Player
+Customers
+Chicken
+Cow
+Tomato Plant
+Wheat
+Products
+Shelves
+Fridges
+Checkout
+Hand Pump
+Flour Mill
+Ketchup Machine
+Bread Oven
+Cola Machine
+Pizza Oven
+Upgrade Pads
+Farm
+Mart
+Paths
+Fences
+Decorations
+```
+
+Maintain consistency in:
+
+* geometry quality
+* proportions
+* material quality
+* roughness
+* shading
+* texture quality
+* lighting
+* animation quality
+
+---
+
+# 60. Character Quality
+
+Characters should have:
+
+* proper proportions
+* expressive faces
+* varied clothing
+* smooth animation
+* consistent skeleton/rig
+* multiple visual variants
+
+The Baker should have a chef/baker hat and apron.
+
+---
+
+# 61. Animation Quality
+
+Animations must be smooth and responsive.
+
+Avoid abrupt transitions such as:
+
+```text
+Idle → instant walk
+Walk → instant stop
+Stop → instant pickup
+```
+
+Use short transitions.
+
+Add subtle secondary motion:
+
+* arm movement
+* body movement
+* head movement
+* product movement
+* machine movement
+
+Do not make animations so long that they slow down gameplay.
+
+---
+
+# 62. World-Space Indicators
+
+All important state indicators should exist in world space.
+
+Examples:
+
+```text
+❗ Shelf needs stocking
+❗ Tomato ready
+❗ Egg ready
+❗ Milk ready
+❗ Oven finished
+😠 Customer impatient
+💰 Upgrade available
+```
+
+Indicators should billboard toward the camera.
+
+They must remain readable from normal gameplay distance.
+
+---
+
+# 63. No Excessive Warning Colors
+
+Do not use:
+
+```text
+Entire customer → red
+Entire shelf → red
+Entire machine → red
+```
+
+Use:
+
+```text
+Normal object
++
+floating state indicator
++
+subtle animation
+```
+
+Red should primarily be used for warning/emotion icons.
+
+---
+
+# 64. Lighting
+
+Use bright, soft lighting.
+
+Avoid:
+
+* dark environments
+* photorealistic lighting
+* excessive bloom
+* dramatic shadows
+
+Use:
+
+* soft ambient lighting
+* subtle shadows
+* clean materials
+* mild highlights
+
+---
+
+# 65. Environment Decoration
+
+Add simple decorations:
+
+* trees
+* bushes
+* flowers
+* fences
+* crates
+* barrels
+* lamps
+* stones
+* signs
+
+Do not allow decoration to interfere with navigation or gameplay.
+
+---
+
+# 66. UI
+
+The UI should match the stylized world.
+
+Use:
+
+* rounded panels
+* rounded buttons
+* large icons
+* readable typography
+* minimal text
+* soft shadows
+
+Avoid dense enterprise-style UI.
+
+The game should rely heavily on the physical world rather than menus.
+
+---
+
+# 67. Interaction Indicators
+
+When approaching an interactable object, show a contextual interaction indicator.
+
+Examples:
+
+```text
+[HARVEST]
+[STOCK]
+[BUY]
+[UPGRADE]
+[CHECKOUT]
+```
+
+Only show the indicator when useful.
+
+Do not permanently label every object.
+
+---
+
+# 68. Object State Communication
+
+Every important object should visually communicate its current state.
+
+### Plant
+
+```text
+Growing
+Ready
+```
+
+### Chicken
+
+```text
+Producing
+Egg ready
+```
+
+### Cow
+
+```text
+Producing
+Milk ready
+```
+
+### Machine
+
+```text
+Idle
+Producing
+Waiting for input
+Output ready
+```
+
+### Shelf
+
+```text
+Empty
+Low
+Stocked
+Full
+```
+
+### Upgrade Pad
+
+```text
+Available
+Unaffordable
+Purchased
+```
+
+The player should not need to open a menu to understand basic state.
+
+---
+
+# 69. Offline Save System
+
+The game must save locally.
+
+Persist:
+
+* money
+* player position
+* carrying capacity level
+* purchased shelves
+* purchased machines
+* purchased animals
+* purchased plants
+* wheat plot states
+* farm expansions
+* mart expansions
+* inventory/storage
+* production progress
+* customer-related persistent state where necessary
+* upgrade levels
+
+The game should restore the world accurately when reopened.
+
+---
+
+# 70. Data-Driven Architecture
+
+Do not hard-code gameplay values across multiple scripts.
+
+Create configurable definitions for:
+
+* products
+* shelves
+* machines
+* recipes
+* animals
+* crops
+* upgrades
+* unlockables
+* prices
+* production times
+* capacities
+* dependencies
+
+For example:
+
+```text
+ProductDefinition
+ShelfDefinition
+MachineDefinition
+RecipeDefinition
+AnimalDefinition
+CropDefinition
+UpgradeDefinition
+UnlockDefinition
+```
+
+This will allow balancing without rewriting gameplay code.
+
+---
+
+# 71. Recipe System
+
+Recipes should be data-driven.
+
+Example:
+
+```text
+Bread
+Inputs:
+    1 Flour
+    1 Egg
+
+Output:
+    1 Bread
+```
+
+```text
+Pizza
+Inputs:
+    1 Flour
+    1 Ketchup
+    1 Egg
+
+Output:
+    1 Pizza
+```
+
+```text
+Cold Drink
+Input:
+    1 Water
+
+Output:
+    1 Cold Drink
+```
+
+```text
+Ketchup
+Input:
+    configurable quantity of Tomato
+
+Output:
+    1 Ketchup
+```
+
+Recipes should be configurable.
+
+---
+
+# 72. Production Capacity
+
+Production sources should stop when their output storage is full.
+
+Example:
+
+```text
+Chicken
+Egg storage = 4
+    ↓
+Stop production
+
+Player collects eggs
+    ↓
+Storage < 4
+    ↓
+Production resumes
+```
+
+Apply the same principle to:
+
+* tomato plants
+* chickens
+* cows
+* hand pump
+* machines
+
+---
+
+# 73. Production Flow
+
+Production should feel physical.
+
+Example:
+
+```text
+Input
+ ↓
+Machine
+ ↓
+Processing animation
+ ↓
+Output
+```
+
+Products should visibly move where appropriate.
+
+Avoid instant invisible conversions wherever practical.
+
+---
+
+# 74. Progression Philosophy
+
+Progression should be driven by:
+
+```text
+Earn money
+    ↓
+Buy shelf/storage
+    ↓
+Unlock production source
+    ↓
+Produce new product
+    ↓
+Serve more customers
+    ↓
+Earn more money
+    ↓
+Unlock next production chain
+```
+
+The player should always have an understandable next improvement.
+
+---
+
+# 75. No Missions
+
+Do not implement mission/quest systems in this version.
+
+The progression comes entirely from:
+
+* earning money
+* purchasing upgrades
+* unlocking products
+* expanding the farm
+* expanding the mart
+* increasing production capacity
+
+---
+
+# 76. No Mandatory Tutorial
+
+Do not create a long tutorial.
+
+Use lightweight contextual guidance where necessary.
+
+The environment should teach the player.
+
+For example:
+
+```text
+Tomato Plant
+     ↓
+Tomato Shelf
+     ↓
+Customer
+     ↓
+Checkout
+```
+
+This should make the basic loop self-explanatory.
+
+---
+
+# 77. Mobile Performance
+
+The game must be designed for Android.
+
+Prioritize:
+
+* efficient meshes
+* texture atlasing where appropriate
+* object pooling
+* limited particle counts
+* efficient AI
+* efficient pathfinding
+* minimal unnecessary Update loops
+* optimized lighting
+* appropriate LOD where necessary
+
+The visual quality should be high without compromising mobile performance.
+
+---
+
+# 78. Camera Readability
+
+The player must be able to recognize important objects from the normal gameplay camera.
+
+At normal distance, the following must be identifiable:
+
+```text
+Tomato Plant
+Wheat Plot
+Chicken
+Cow
+Shelf
+Fridge
+Machine
+Checkout
+Customer
+Upgrade Pad
+```
+
+Use exaggerated shapes/proportions if necessary.
+
+---
+
+# 79. Final Visual Target
+
+The final game should feel like a polished casual mobile management game:
+
+```text
+Cute
++
+Colorful
++
+Polished
++
+Readable
++
+Responsive
++
+Rewarding
+```
+
+It should feel significantly more polished than a basic Unity prototype.
+
+---
+
+# 80. Final Acceptance Criteria
+
+The implementation is considered successful only when:
+
+### Gameplay
+
+* [ ] Player starts with minimal money.
+* [ ] Tomato production works.
+* [ ] Tomato shelf works.
+* [ ] Customers dynamically generate valid shopping lists.
+* [ ] Customers physically collect products.
+* [ ] Customers use carts.
+* [ ] Customers have finite patience.
+* [ ] Customers leave with whatever they collected if patience expires.
+* [ ] Checkout works.
+* [ ] Player earns money.
+* [ ] Carrying capacity works.
+* [ ] Carrying capacity upgrades work.
+
+### Production
+
+* [ ] Chickens consume tomatoes and produce eggs.
+* [ ] Egg Shelf works.
+* [ ] Wheat farm is exactly 4 × 4.
+* [ ] All 16 wheat plots are independent unlockable entities.
+* [ ] Each wheat plot has its own purchase price.
+* [ ] Each wheat plot has its own growth state.
+* [ ] Each wheat plot can be independently harvested.
+* [ ] Flour production works.
+* [ ] Cows consume wheat and produce milk.
+* [ ] Milk Fridge works.
+* [ ] Bread production works.
+* [ ] Water Pump works.
+* [ ] Water Fridge works.
+* [ ] Cola Machine converts water into cold drinks.
+* [ ] Cold Drinks Fridge works.
+* [ ] Ketchup production works.
+* [ ] Pizza production works.
+* [ ] Baker is required for Pizza Oven operation.
+* [ ] Pizza Shelf works.
+
+### Unlocks
+
+* [ ] Production sources are not purchasable before their destination shelf/storage is purchased.
+* [ ] Customer shopping lists only contain currently available products.
+* [ ] Unlock dependencies are data-driven.
+* [ ] Upgrade pads correctly represent available purchases.
+
+### Attention System
+
+* [ ] Waiting customers have floating patience indicators.
+* [ ] Customers do not turn completely red.
+* [ ] Patience visually progresses toward anger.
+* [ ] Shelves requiring attention show floating `!`.
+* [ ] Production sources with ready products show floating `!`.
+* [ ] Indicators do not overwhelm the screen.
+* [ ] Indicators face the camera.
+
+### Expansion
+
+* [ ] Farm expansion works.
+* [ ] Mart expansion works.
+* [ ] New sections appear at predetermined locations.
+* [ ] New machines appear in dedicated production zones.
+* [ ] Expansion uses construction/unlock animations.
+* [ ] Wheat plots fill the 4 × 4 grid progressively.
+
+### Visuals
+
+* [ ] No major final asset is an unmodified Unity primitive.
+* [ ] Player is polished.
+* [ ] Customers are polished and varied.
+* [ ] Chicken is polished.
+* [ ] Cow is polished.
+* [ ] Crops are polished.
+* [ ] Products are polished.
+* [ ] Shelves are polished.
+* [ ] Fridges are polished.
+* [ ] Machines are polished.
+* [ ] Checkout is polished.
+* [ ] Upgrade pads are polished.
+* [ ] Animations are smooth.
+* [ ] Lighting is polished.
+* [ ] Camera is optimized for mobile.
+* [ ] UI matches the visual style.
+
+### Persistence
+
+* [ ] Money persists.
+* [ ] Purchases persist.
+* [ ] Unlocks persist.
+* [ ] Wheat plot states persist.
+* [ ] Production states persist.
+* [ ] Inventory/storage persists.
+* [ ] Upgrade levels persist.
+* [ ] Farm/mart expansion persists.
+
+---
+
+# 81. Core Design Principle
+
+The most important design principle is:
+
+> **The player should understand the game by looking at the world.**
+
+The physical environment should communicate:
+
+```text
+🌱 → produces resources
+
+🐔 → produces eggs
+
+🐄 → produces milk
+
+🌾 → produces wheat
+
+🏭 → processes resources
+
+🛒 → customers shop
+
+🧾 → checkout
+
+❄️ → refrigerated products
+
+🍕 → advanced food production
+
+❗ → something needs attention
+
+💰 → something can be upgraded
+```
+
+The player should see the world evolve as they spend money.
+
+The progression should therefore feel physical:
+
+```text
+Tiny Shop
+    ↓
+More Shelves
+    ↓
+More Production
+    ↓
+More Animals
+    ↓
+More Farm
+    ↓
+More Machines
+    ↓
+More Customers
+    ↓
+Bigger Shop
+    ↓
+Advanced Products
+    ↓
+Large Mini-Mart
+```
+
+The final experience should feel like:
+
+**"I started with almost nothing, and I physically built this entire mini-mart and farm."**
+
+---
+
+# 82. Implementation Priority
+
+Build in this order:
+
+### Phase 1 — Core Loop
+
+1. Player movement
+2. Camera
+3. Money
+4. Tomato plant
+5. Tomato harvesting
+6. Carrying capacity
+7. Tomato shelf
+8. Customer spawning
+9. Customer shopping
+10. Customer cart
+11. Checkout
+12. Revenue
+
+### Phase 2 — Attention & Polish
+
+13. Customer patience
+14. Floating patience indicator
+15. Shelf `!` indicators
+16. Production attention indicators
+17. Interaction indicators
+18. Basic polished character models
+19. Basic polished environment
+
+### Phase 3 — Progression
+
+20. Upgrade-pad system
+21. Shelf unlock system
+22. Dependency system
+23. Carrying-capacity upgrades
+24. Farm expansion
+25. Mart expansion
+
+### Phase 4 — Production
+
+26. Egg Shelf
+27. Chicken
+28. 4 × 4 Wheat Farm
+29. 16 independent wheat plots
+30. Flour Mill
+31. Milk Fridge
+32. Cow
+33. Bread Shelf
+34. Bread Oven
+35. Water Fridge
+36. Hand Pump
+37. Cold Drinks Fridge
+38. Cola Machine
+39. Ketchup Shelf
+40. Ketchup Machine
+
+### Phase 5 — Advanced Production
+
+41. Pizza Shelf
+42. Pizza Oven
+43. Baker
+44. Pizza production
+45. Advanced customer demand
+
+### Phase 6 — Final Polish
+
+46. Character variation
+47. Improved animations
+48. Improved materials
+49. Lighting
+50. Environment decoration
+51. VFX
+52. Sound effects
+53. UI polish
+54. Mobile optimization
+55. Save/load validation
+56. Android build testing
+
+---
+
+# 83. Development Rule
+
+Do not attempt to build the entire game as one monolithic implementation.
+
+Build each system as an independent, reusable component.
+
+Important systems should be modular:
+
+```text
+PlayerController
+CustomerController
+CustomerAI
+InventorySystem
+ProductSystem
+ShelfSystem
+CheckoutSystem
+ProductionSystem
+RecipeSystem
+AnimalSystem
+CropSystem
+UpgradeSystem
+UnlockSystem
+ExpansionSystem
+AttentionIndicatorSystem
+SaveSystem
+UIManager
+```
+
+The systems should communicate through clean interfaces/data rather than tightly coupled logic.
+
+The final architecture should make it easy to add a future product such as:
+
+```text
+Ice Cream
+```
+
+without rewriting the customer, shelf, production, inventory, and unlock systems.
+
+---
+
+# 84. Final Instruction to the Development Agent
+
+Build the game as a **complete playable Android game**, not merely a collection of prototypes.
+
+Prioritize:
+
+1. Correct gameplay logic
+2. Clean architecture
+3. Data-driven progression
+4. Strong visual readability
+5. Polished stylized 3D assets
+6. Smooth animations
+7. Mobile performance
+8. Persistent local saves
+9. Expandable production system
+
+When making implementation decisions that are not explicitly specified above, prefer the solution that preserves the core experience:
+
+**simple to understand → satisfying to operate → visually readable → progressively expandable → polished enough to feel like a commercial casual mobile game.**
+
+Do not introduce unnecessary mechanics such as missions, quests, combat, multiplayer, complex menus, or online systems unless explicitly requested later.
+
+The first objective is a **high-quality offline single-player Android mini-mart/farm management game with a strong physical progression loop.**
